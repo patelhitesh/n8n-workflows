@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Number Kingdom — Royal Vault</title>
+<style>
+  :root{
+  --bg: #05010d;
+  --card: #0c0216;
+  --glass: #f5f3ff;
+  --accent1: #ff00e6;
+  --accent2: #00faff;
+  --accent3: #39ff14;
+  --muted: #bbb0d0;
+  --success: #00ffa2;
+  --danger: #ff4f7d;
+  --radius: 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Animated neon gradient background */
+body{
+  margin:0;
+  height:100%;
+  background: linear-gradient(120deg, var(--accent1), var(--accent2), var(--accent3));
+  background-size: 400% 400%;
+  animation: bgShift 10s ease infinite;
+  color: white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px;
+}
+@keyframes bgShift{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.shell{
+  width:100%;
+  max-width:980px;
+  background: rgba(10, 0, 25, 0.8);
+  border-radius:18px;
+  box-shadow: 0 0 30px rgba(255,0,255,0.3), 0 0 60px rgba(0,255,255,0.2);
+  padding:26px;
+  display:grid;
+  grid-template-columns: 420px 1fr;
+  gap:20px;
+}
+
+/* Neon glow utility */
+.neon-glow{
+  box-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+}
+
+/* Card area */
+.card{
+  background: rgba(15, 2, 26, 0.9);
+  border-radius: var(--radius);
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  min-height:420px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Crest logo with glow */
+.crest{
+  width:56px;height:56px;border-radius:12px;
+  background: linear-gradient(135deg,var(--accent1),var(--accent2));
+  display:grid;place-items:center;
+  font-weight:700;color:#fff;font-size:20px;
+  box-shadow: 0 0 15px var(--accent1), 0 0 25px var(--accent2);
+}
+
+/* Hourglass glow effect */
+.hg{
+  background: linear-gradient(180deg,#1a0033,#001a33);
+  border-radius:10px;
+  display:grid;place-items:center;
+  box-shadow: 0 0 20px rgba(0,255,255,0.6);
+  animation: glowPulse 2s infinite alternate;
+}
+@keyframes glowPulse{
+  0% { box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+  100% { box-shadow: 0 0 30px rgba(0,255,255,0.8); }
+}
+
+/* Inputs with neon borders on focus */
+input[type=number]{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.15);
+  padding:10px 12px;
+  border-radius:10px;
+  color:var(--glass);
+  font-weight:600;
+  font-size:16px;
+  transition: all 0.3s ease;
+}
+input[type=number]:focus{
+  border-color: var(--accent2);
+  box-shadow: 0 0 10px var(--accent2), 0 0 20px var(--accent2);
+}
+
+/* Neon buttons */
+button{
+  border:0;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:700;
+  cursor:pointer;
+  background: linear-gradient(90deg,var(--accent1),var(--accent2));
+  color:#fff;
+  box-shadow: 0 0 10px var(--accent1), 0 0 20px var(--accent2);
+  transition: all 0.2s ease;
+}
+button:hover{
+  transform: scale(1.05);
+  box-shadow: 0 0 15px var(--accent1), 0 0 30px var(--accent2);
+}
+
+/* Vault open sweep effect */
+.vault-box.open{
+  animation: vaultGlow 2s ease forwards;
+}
+@keyframes vaultGlow{
+  0% { box-shadow: 0 0 10px var(--accent3); }
+  50% { box-shadow: 0 0 40px var(--accent3), 0 0 80px var(--accent3); }
+  100% { box-shadow: 0 0 20px var(--accent3); }
+}
+
+</style>
+</head>
+<body>
+  <main class="shell" role="application" aria-labelledby="title">
+    <section class="card" aria-labelledby="title">
+      <div class="title">
+        <div class="crest" aria-hidden="true">NK</div>
+        <div>
+          <h1 id="title">Number Kingdom — Royal Vault</h1>
+          <p class="lead">Enter four magic numbers to open the vault. The Royal Hourglass is running.</p>
+        </div>
+      </div>
+
+      <div class="hourglass" aria-hidden="false">
+        <div class="hg-wrap" title="Royal Hourglass">
+          <div class="hg" id="hourglass" aria-hidden="true">
+            <div class="sand" aria-hidden="true">
+              <div class="top" id="sandTop" style="height:70%"></div>
+              <div style="height:6px"></div>
+              <div class="bottom" id="sandBottom" style="height:30%"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="micro">Time remaining</div>
+          <div id="timer" style="font-weight:800;font-size:18px">01:30</div>
+        </div>
+      </div>
+
+      <form id="puzzleForm" autocomplete="off" onsubmit="return false" aria-describedby="instructions">
+        <div id="instructions" class="micro" style="margin-top:8px">All numbers must be whole numbers greater than 0. The sum must be 100.</div>
+
+        <div class="inputs" style="margin-top:12px">
+          <div class="field">
+            <label for="n1">First number (a)</label>
+            <input id="n1" type="number" min="1" step="1" inputmode="numeric" aria-label="First number a" />
+          </div>
+          <div class="field">
+            <label for="n2">Second number (b)</label>
+            <input id="n2" type="number" min="1" step="1" inputmode="numeric" aria-label="Second number b" />
+          </div>
+          <div class="field">
+            <label for="n3">Third number (c)</label>
+            <input id="n3" type="number" min="1" step="1" inputmode="numeric" aria-label="Third number c" />
+          </div>
+          <div class="field">
+            <label for="n4">Fourth number (d)</label>
+            <input id="n4" type="number" min="1" step="1" inputmode="numeric" aria-label="Fourth number d" />
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="checkBtn" type="button">Try the numbers</button>
+          <button id="hintBtn" class="secondary" type="button">Request a hint</button>
+          <button id="autoFill" class="ghost" type="button" title="Auto fill correct solution">Show solution</button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <aside class="panel" aria-labelledby="cluesTitle">
+      <h2 id="cluesTitle" style="margin:0;font-size:16px">Clues for the King</h2>
+      <div class="clues" aria-hidden="false" style="margin-top:8px">
+        <div class="clue">1. The sum of the four numbers is 100.</div>
+        <div class="clue">2. Each number is a whole number greater than 0.</div>
+        <div class="clue">3. The first number is twice the second. That is a = 2b.</div>
+        <div class="clue">4. The third number is the average of the first two. That is c = (a + b) / 2.</div>
+        <div class="clue">5. The last number is the absolute difference between the second and the third. That is d = |b - c|.</div>
+      </div>
+
+      <div class="result" id="resultBox" aria-live="polite">
+        <div class="vault" aria-hidden="false">
+          <div class="vault-box" id="vaultBox" aria-hidden="true">VAULT</div>
+          <div style="flex:1">
+            <div class="micro">Vault status</div>
+            <div id="vaultStatus" style="font-weight:800;margin-top:6px">Locked</div>
+            <div class="micro" style="margin-top:6px">When you open the vault, a clear reasoning you can give the King will appear.</div>
+          </div>
+        </div>
+
+        <div id="explain" class="explain" style="opacity:0.9">
+          <div style="font-weight:800">What this really means is</div>
+          <div id="explainText" style="margin-top:6px;color:var(--muted)">Enter numbers and press Try the numbers to validate. You may request a hint. The Royal Hourglass keeps time.</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+<script>
+  // Puzzle logic and UI interactions
+  (function(){
+    const n1 = document.getElementById('n1');
+    const n2 = document.getElementById('n2');
+    const n3 = document.getElementById('n3');
+    const n4 = document.getElementById('n4');
+    const status = document.getElementById('status');
+    const explainText = document.getElementById('explainText');
+    const vaultStatus = document.getElementById('vaultStatus');
+    const vaultBox = document.getElementById('vaultBox');
+    const checkBtn = document.getElementById('checkBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const autoFill = document.getElementById('autoFill');
+    const timerEl = document.getElementById('timer');
+    const sandTop = document.getElementById('sandTop');
+    const sandBottom = document.getElementById('sandBottom');
+
+    // Royal hourglass: 90 seconds
+    let totalSeconds = 90;
+    let remaining = totalSeconds;
+    let countdownActive = true;
+    let solved = false;
+
+    function formatTime(s){
+      const mm = Math.floor(s/60).toString().padStart(2,'0');
+      const ss = (s%60).toString().padStart(2,'0');
+      return mm + ':' + ss;
+    }
+
+    timerEl.textContent = formatTime(remaining);
+    function tick(){
+      if(!countdownActive) return;
+      remaining = Math.max(0, remaining - 1);
+      timerEl.textContent = formatTime(remaining);
+      // update sand visuals proportionally
+      const ratio = remaining / totalSeconds;
+      sandTop.style.height = Math.round(ratio * 100) + '%';
+      sandBottom.style.height = Math.round((1 - ratio) * 100) + '%';
+      if(remaining === 0){
+        countdownActive = false;
+        if(!solved){
+          status.textContent = "Time's up. The Royal Hourglass emptied and the vault remains closed.";
+          status.className = '';
+          vaultStatus.textContent = 'Locked';
+          vaultBox.classList.remove('open');
+        }
+      }
+    }
+    setInterval(tick, 1000);
+
+    // Validation function (implements the clues)
+    function validateSolution(a,b,c,d){
+      // All must be positive integers
+      const okInts = [a,b,c,d].every(n => Number.isInteger(n) && n > 0);
+      if(!okInts) return {ok:false,msg:'All four values must be whole numbers greater than 0.'};
+
+      if(a + b + c + d !== 100) return {ok:false,msg:'The numbers must sum to 100.'};
+      if(a !== 2 * b) return {ok:false,msg:'The first number must be twice the second (a = 2b).'};
+      if(c !== (a + b) / 2) return {ok:false,msg:'The third must be the average of the first two (c = (a + b)/2).'};
+      if(d !== Math.abs(b - c)) return {ok:false,msg:'The fourth must be the absolute difference between the second and third (d = |b - c|).'};
+      return {ok:true,msg:'Correct. The vault opens.'};
+    }
+
+    function readInputs(){
+      // parse as integers. treat empty as NaN.
+      const a = parseInt(n1.value, 10);
+      const b = parseInt(n2.value, 10);
+      const c = parseInt(n3.value, 10);
+      const d = parseInt(n4.value, 10);
+      return {a,b,c,d};
+    }
+
+    function showFailure(msg){
+      status.textContent = msg;
+      status.className = '';
+    }
+
+    function showSuccess(a,b,c,d){
+      solved = true;
+      countdownActive = false;
+      status.textContent = "The vault glows and opens. Well done.";
+      status.className = '';
+      vaultStatus.textContent = 'Open';
+      vaultBox.classList.add('open');
+      explainText.innerHTML = `
+        <div>King, here is the clear reasoning you asked for:</div>
+        <ol style="margin-top:10px;color:var(--muted)">
+          <li>From clue 3 a = 2b.</li>
+          <li>From clue 4 c = (a + b)/2 = (2b + b)/2 = 3b/2. That means b must be even so c is an integer.</li>
+          <li>From clue 5 d = |b - c| = |b - 3b/2| = b/2.</li>
+          <li>Sum all numbers: a + b + c + d = 2b + b + 3b/2 + b/2 = 5b.</li>
+          <li>We need 5b = 100, so b = 20. Then a = 40, c = 30, d = 10.</li>
+        </ol>
+        <div style="margin-top:8px;font-weight:800;color:var(--accent)">Four Magic Numbers: 40, 20, 30, 10</div>
+      `;
+    }
+
+    checkBtn.addEventListener('click', () => {
+      if(!countdownActive && !solved){
+        showFailure("The Royal Hourglass has emptied. Try again by reloading the page.");
+        return;
+      }
+      const {a,b,c,d} = readInputs();
+      if([a,b,c,d].some(x => Number.isNaN(x))){
+        showFailure('Please enter all four numbers.');
+        return;
+      }
+      // run check
+      const result = validateSolution(a,b,c,d);
+      if(result.ok){
+        showSuccess(a,b,c,d);
+      } else {
+        showFailure(result.msg);
+      }
+    });
+
+    // Provide a subtle step hint set. Hints escalate.
+    const hints = [
+      'Hint 1: Use a = 2b and c = (a + b)/2 to express c in terms of b.',
+      'Hint 2: If a = 2b then c = 3b/2, and d = b/2.',
+      'Hint 3: Replace a, c, and d in the total sum a + b + c + d with expressions in b to get 5b = 100.'
+    ];
+    let hintIndex = 0;
+    hintBtn.addEventListener('click', () => {
+      if(hintIndex >= hints.length){
+        status.textContent = 'No more hints. Use what you have.';
+        return;
+      }
+      status.textContent = hints[hintIndex++];
+    });
+
+    // Autofill solution
+    autoFill.addEventListener('click', () => {
+      n2.value = 20;
+      n1.value = 40;
+      n3.value = 30;
+      n4.value = 10;
+      status.textContent = 'Solution filled. Press Try the numbers to open the vault.';
+    });
+
+    // keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        checkBtn.click();
+      }
+      if(e.key === 'h' || e.key === 'H'){
+        e.preventDefault();
+        hintBtn.click();
+      }
+    });
+
+    // small accessibility focus flow
+    n1.addEventListener('input', () => status.textContent = '');
+    n2.addEventListener('input', () => status.textContent = '');
+    n3.addEventListener('input', () => status.textContent = '');
+    n4.addEventListener('input', () => status.textContent = '');
+
+    // Start state: micro prompt
+    explainText.textContent = 'Solve the clues and present the reasoning to the King before the sand runs out.';
+  })();
+</script>
+</body>
+</html>

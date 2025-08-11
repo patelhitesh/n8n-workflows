@@ -1,0 +1,14 @@
+# n8n specific
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# VSCode settings
+.vscode/
