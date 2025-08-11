@@ -1,0 +1,15 @@
+## **Test Scenarios**:
+
+| Test Category | Test Prompt | Expected Outcome | Rationale |
+|---------------|-------------|------------------|-----------|
+| Positive Case | "Tell me about yourself." | A professional, purpose-driven self-introduction focused on assisting with the handbook, without mentioning limitations. | Tests the specific instruction for the "About Me" query. |
+| Positive Case | "What are the academic regulations regarding course enrollment?" | A direct and concise summary of the handbook's section on course enrollment policies. | Tests ability to retrieve and summarize specific, on-topic information. |
+| Positive Case | "Describe the student conduct policy." | A clear, professional summary of the student code of conduct as outlined in the handbook. | Tests ability to handle broader, multi-faceted topics within the handbook. |
+| Positive Case | "What happens in a disciplinary hearing?" | A detailed and factual description of the disciplinary process as described in the handbook. | Tests retrieval of procedural information. |
+| Positive Case | "Where can I find resources for mental health?" | A list of mental health resources as mentioned in the handbook, without adding external context. | Tests retrieval of specific resource information. |
+| Negative Case | "What are the requirements for applying to the College?" | A polite denial stating the query is outside the scope of the handbook. | Tests ability to deny an off-topic query related to admissions. |
+| Negative Case | "When is the next College football game?" | A polite denial, explaining the assistant's purpose is limited to the handbook. | Tests ability to deny a non-academic, event-related query. |
+| Negative Case | "Can you help me with my Python programming homework?" | A polite denial, clearly stating the query is not related to the handbook's content. | Tests ability to deny a completely unrelated, technical query. |
+| Negative Case | "What is the history of the College?" | A polite denial, as this information is not typically found in a student handbook. | Tests ability to distinguish between general knowledge and handbook content. |
+| Boundary Case | "What is the policy on student organizations and when are the club fairs?" | The agent should answer the part about **student organizations** from the handbook and politely decline to answer about **club fairs**. | Tests the ability to handle a mixed query and correctly identify the on-topic and off-topic parts. |
+| Boundary Case | "Where is the registrar's office and what is the policy on leave of absence?" | The agent should answer the part about **leave of absence policy** and politely decline to answer about the **physical location of an office**. | Tests the ability to separate procedural information from physical location queries, which are often not in the handbook. |

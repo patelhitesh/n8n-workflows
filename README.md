@@ -1,4 +1,4 @@
-# ⚡ N8N Workflow Collection & Documentation: RAG-Powered Chatbot Framework
+# ⚡ N8N Workflow Collection: RAG-Powered Chatbots
 
 An organized collection of **n8n workflows**. It houses robust n8n workflows designed to automate query answering from a custom knowledge base. The entire solution is built on a Retrieval-Augmented Generation (RAG) architecture, with n8n serving as the central orchestration platform.
 
