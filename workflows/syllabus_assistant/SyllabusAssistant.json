@@ -1,0 +1,276 @@
+{
+  "name": "SyllabusAssistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c9dad09e-baa5-4d85-a3c2-a0823e163bc0",
+      "name": "Telegram Trigger",
+      "webhookId": "c02f1d00-09fa-4847-9945-51e10d1348f0",
+      "credentials": {
+        "telegramApi": {
+          "id": "XK2OlPlQepwQPNsl",
+          "name": "Telegram HP Syllabus Assistant"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=You are the Syllabus Assistant. Your primary function is to answer the user query based exclusively on the provided syllabus. Use the chat history for conversational context.\nYour knowledge is strictly limited to the retrieved text—it is your only source of truth. You must only provide answers that are explicitly stated. Do not infer, synthesize, or use external knowledge.\n**Response Rules:**\n0.  **Greeting:** If the user's query is a simple, standalone greeting (e.g., \"Hi\", \"Hello\"), ignore all other rules and respond with: \"Hello! I am a Syllabus Assistant. I can answer questions about the content based on the syllabus documents. How can I help you?\"\n1.  **Answer Present:** If the answer is in the context, state it precisely.\n2.  **Detail Missing:** If the context is relevant but lacks a specific detail, report what is stated and what is missing.\n3.  **Irrelevant/Off-Topic:** If the context is irrelevant or the part or full query is off-topic, answer the part of query that is relevant and for irrelevant part of the query politely redirect the user, explaining what else you can answer about the syllabus that is closely related to the context.\n\nLimit all your responses within 150 words for generic queries and within 350 words for specific syllabus related queries. Always ensure to not abruptly end the sentence due to this limitation in word count."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a81d37f7-6966-4a3d-b3cc-49eb3f52ded3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        208
+      ],
+      "id": "26b6b057-93ec-43f8-8533-88ed73b3d91c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "bgKs4SZxKElHPimr",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "a6875a8f-bf9c-425b-a987-95943161f5dc",
+      "name": "Send a text message",
+      "webhookId": "7394e044-6d6c-46c0-b579-1faeba6e9157",
+      "credentials": {
+        "telegramApi": {
+          "id": "XK2OlPlQepwQPNsl",
+          "name": "Telegram HP Syllabus Assistant"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "syllabus-library",
+          "mode": "list",
+          "cachedResultName": "syllabus-library"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        224
+      ],
+      "id": "9c3f4559-4911-4d91-b98f-f141588295f3",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "bUSmnmdzGFIV0rbz",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        384
+      ],
+      "id": "83ebcacb-f299-4c89-92b4-a356acc406ec",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "bgKs4SZxKElHPimr",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.text }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "3aa29ecb-c0fc-400f-aa5e-205518fba80a",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 929732327,
+          "message": {
+            "message_id": 3,
+            "from": {
+              "id": 1825990021,
+              "is_bot": false,
+              "first_name": "Hitesh",
+              "username": "IM_Hitesh",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 1825990021,
+              "first_name": "Hitesh",
+              "username": "IM_Hitesh",
+              "type": "private"
+            },
+            "date": 1755261219,
+            "text": "Give a summary of mathematics syllabus for class VI",
+            "entities": [
+              {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4ecf975b-c0e1-4990-81af-41d27a67ffe6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "61f5f4ba368a18036405edcb146a582bf0d5feec70389539086e519787ae30ee"
+  },
+  "id": "XPCsIZGqDdZdu5VZ",
+  "tags": [
+    {
+      "createdAt": "2025-08-06T12:21:36.357Z",
+      "updatedAt": "2025-08-06T12:21:36.357Z",
+      "id": "UyEnxSaCbGZfzpJG",
+      "name": "IC-Project"
+    }
+  ]
+}
