@@ -1,0 +1,218 @@
+{
+  "name": "Recipes",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {}
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z",
+          "mode": "list",
+          "cachedResultName": "RAG_Test_Documents",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -160
+      ],
+      "id": "091f4d4c-b2e8-473b-b574-32a780ef5f24",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1kt7nyqAhkx5x8lBXekvQMncTzHpP6wbI",
+          "mode": "list",
+          "cachedResultName": "Recipes Book.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1kt7nyqAhkx5x8lBXekvQMncTzHpP6wbI/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        608,
+        -160
+      ],
+      "id": "508c070a-3ede-466e-b810-8a3b285df40a",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "recipes",
+          "mode": "list",
+          "cachedResultName": "recipes"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        -160
+      ],
+      "id": "0c78fee5-6e80-4e30-9d3d-280dddcb82f5",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "5GrO2LpdbiEW9mPe",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        48
+      ],
+      "id": "62ad2141-bf0b-417f-8b2e-573dfcccead5",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        48
+      ],
+      "id": "6931c87f-a1d5-4bb0-83b7-0ad1f3a61eca",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        944,
+        224
+      ],
+      "id": "f2514f9f-03f7-4c3b-b0f5-f7b8df6a471d",
+      "name": "Recursive Character Text Splitter"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5f9902f9-f5f6-4352-9755-3b24d78347ef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38caafec2ebbecb4824f6a6a28170dbb0508d95374fbbbf908fa415e7be78bc2"
+  },
+  "id": "EPGk3KB2z8RhgCS3",
+  "tags": [
+    {
+      "createdAt": "2025-08-16T12:43:11.379Z",
+      "updatedAt": "2025-08-16T12:43:11.379Z",
+      "id": "wdO3ihhn9c51hVwM",
+      "name": "IC-Project"
+    }
+  ]
+}

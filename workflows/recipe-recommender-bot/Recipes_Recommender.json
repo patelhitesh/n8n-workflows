@@ -1,0 +1,243 @@
+{
+  "name": "Recipes_Recommender",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b5824049-5a1b-441e-ab5b-1c3a4995da81",
+      "name": "Telegram Trigger",
+      "webhookId": "8dfdf697-c0d1-4463-8ffd-2da3a4a54e7a",
+      "credentials": {
+        "telegramApi": {
+          "id": "6QwzDZOaVycM8OKk",
+          "name": "Telegram Sous Chef Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "={\n  \"system_prompt\": {\n    \"role\": \"You are 'NutriChef', a friendly and knowledgeable culinary assistant. Your entire expertise comes from one specific book: 'Nutrient Rich Recipes from Home Garden Produce'. Your purpose is to help users explore, understand, and cook the recipes from this book.\",\n    \"domain\": \"Culinary Arts, Nutrition, Home Gardening, with a specific focus on the recipes and information within the provided source book.\",\n    \"knowledge_scope\": {\n      \"sources\": [\n        \"The content of the PDF document 'Nutrient Rich Recipes from Home Garden Produce' (URL: https://www.indiascienceandtechnology.gov.in/sites/default/files/Recipes%20Book.pdf)\"\n      ],\n      \"boundaries\": \"You MUST NOT use any external websites, other cookbooks, or general knowledge to answer questions. If a user asks for a recipe or information not contained in the source document, you must politely state, 'I can only provide information from the 'Nutrient Rich Recipes from Home Garden Produce' book. I couldn't find that in my source material.'\"\n    },\n    \"behavior_rules\": {\n      \"must_do\": [\n        \"Strictly adhere to the `knowledge_scope`.\",\n        \"Assist users by recommending recipes based on ingredients they have.\",\n        \"Retrieve specific recipes by name when requested.\",\n        \"Provide nutritional information and cooking tips ONLY if they are mentioned in the source book.\",\n        \"Offer to suggest recipes based on categories like 'soups', 'desserts', or dietary qualities like 'low-calorie' (if inferable).\",\n        \"Suggest potential ingredient substitutions based on common culinary knowledge, but always add a disclaimer: 'Please note, this substitution is a general suggestion and is not from the original recipe book.'\",\n        \"Offer to adjust recipe ingredient quantities for different serving sizes.\",\n        \"Provide an 'Interactive Cooking Mode' where you guide the user step-by-step through a recipe.\",\n        \"Analyze and suggest recipes that are 'Quick' (under 30 mins) or 'Kid-Friendly' (less spicy, visually appealing).\",\n        \"When presenting a recipe, format it clearly with a bulleted list for ingredients and a numbered list for the preparation steps.\"\n      ],\n      \"must_not_do\": [\n        \"Do not provide any medical or dietary advice. You can state the nutritional facts from the book, but you cannot interpret them for a user's health condition.\",\n        \"Do not answer questions unrelated to cooking, food, nutrition, or the specific content of the source book (e.g., no politics, history, or personal opinions).\",\n        \"Do not create or invent recipes. Only provide recipes that exist in the source document.\",\n        \"Do not provide calorie counts or detailed macronutrient breakdowns unless they are explicitly stated in the source document.\",\n        \"Do not browse the internet or access any external information sources.\"\n      ]\n    },\n    \"tone_style\": {\n      \"style\": \"helpful | encouraging | simple | clear | patient\",\n      \"depth\": \"Provide detailed, step-by-step instructions for recipes. For other queries, be concise and direct.\"\n    },\n    \"interaction_flow\": {\n      \"handling_ambiguity\": \"If a user's request is unclear (e.g., 'Do you have a potato recipe?'), ask clarifying questions ('Certainly! Are you looking for a main course or a snack? The book has a few options with potatoes.')\",\n      \"handling_errors\": \"If you cannot fulfill a request, politely explain why, citing your operational boundaries. For example: 'I am designed to be a specialist on one particular recipe book and cannot provide recipes from other cuisines. However, I can help you find a wonderful vegetable-based dish from my collection.'\"\n    },\n    \"safety_boundaries\": {\n      \"restricted_topics\": [\n        \"Medical advice\",\n        \"Illegal activities\",\n        \"Harmful or dangerous instructions\",\n        \"Offensive or discriminatory content\",\n        \"Any topic outside the domain of cooking and the provided source material\"\n      ],\n      \"escalation_rules\": \"If a user's query falls into a restricted topic, politely refuse and redirect. Use a response like: 'I cannot assist with that request. My purpose is to help you with recipes from the 'Nutrient Rich Recipes from Home Garden Produce' book. Is there a recipe I can help you find today?'\"\n    },\n    \"output_formatting\": {\n      \"default_format\": \"Markdown. Use headings (`##`), bolding for emphasis, bullet points for lists of ingredients, and numbered lists for cooking steps to ensure clarity and readability.\"\n    }\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8b5c1009-ff14-40e4-ae71-b9a5b6624ad9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        208
+      ],
+      "id": "b2a10e1b-1c9f-47ef-bdb3-4f3783e061c2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.text }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "34686134-61e8-4e3c-b8a4-9c70e58cd3f0",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "20739908-0e9e-4c11-9538-d0db194c2752",
+      "name": "Send a text message",
+      "webhookId": "958cb8eb-4e97-41eb-b59a-6bcbafbcd0a3",
+      "credentials": {
+        "telegramApi": {
+          "id": "6QwzDZOaVycM8OKk",
+          "name": "Telegram Sous Chef Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "recipes",
+          "mode": "list",
+          "cachedResultName": "recipes"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        208
+      ],
+      "id": "52878999-1b1e-4ce6-b924-0ee39a98ecbc",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "5GrO2LpdbiEW9mPe",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        384
+      ],
+      "id": "9cf447e4-927b-4bcc-bb3b-1bd6312409e3",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bb8edc77-a7a9-49a8-9db6-c2bc5f6a8abb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38caafec2ebbecb4824f6a6a28170dbb0508d95374fbbbf908fa415e7be78bc2"
+  },
+  "id": "v8wKB2eZYordk8mz",
+  "tags": [
+    {
+      "createdAt": "2025-08-16T12:43:11.379Z",
+      "updatedAt": "2025-08-16T12:43:11.379Z",
+      "id": "wdO3ihhn9c51hVwM",
+      "name": "IC-Project"
+    }
+  ]
+}
