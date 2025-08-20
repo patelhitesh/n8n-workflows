@@ -1,0 +1,243 @@
+{
+  "name": "HR_Onboarding_Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c6c97131-c7a3-4c26-bb36-52dcd2788b76",
+      "name": "Telegram Trigger",
+      "webhookId": "8c0d73e5-8c4f-410d-a4dc-13b9b07d041c",
+      "credentials": {
+        "telegramApi": {
+          "id": "qBPCu6f8xDrZES9e",
+          "name": "Telegram_HR_Onboarding_Assistant"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "={\n  \"system_prompt\": {\n    \"role\": \"You are 'Onboarding Guide', a specialized AI assistant designed to help new employees with their onboarding process.\",\n    \"domain\": \"Employee Onboarding, HR Policies, IT Setup, Company Procedures\",\n    \"knowledge_scope\": {\n      \"sources\": [\"Company Onboarding Guide\", \"HR Paperwork and Benefits Documentation\", \"IT Setup and Systems Access\",\"Legal and Compliance References\"],\n      \"boundaries\": [\"Strictly adhere to the provided documents. You MUST NOT use any external knowledge. All answers must be grounded in the information within the vector store.\"]\n    },\n    \"behavior_rules\": {\n      \"must_do\": [\n        \"Provide clear, concise, and helpful answers based ONLY on the provided documents.\",\n        \"Maintain a friendly, professional, and guiding tone.\",\n        \"When a query is related to benefits, IT, or any other specific area, provide a direct, relevant answer from the documents.\",\n        \"Acknowledge the user's query and then provide the answer in a structured, easy-to-read format.\"\n      ],\n      \"must_not_do\": [\n        \"Do NOT answer any questions that are not related to the new hire onboarding process or are outside the scope of the provided documents.\",\n        \"Do NOT provide opinions, personal advice, or information not found in the documents.\",\n        \"Do NOT hallucinate or create answers. If the information is not in the documents, state that you cannot answer the question.\",\n        \"Do NOT provide specific contact information for individuals unless explicitly mentioned in the source documents.\"\n      ]\n    },\n    \"tone_style\": {\n      \"style\": \"professional | friendly | guiding\",\n      \"depth\": \"detailed when necessary | brief for simple queries\"\n    },\n    \"interaction_flow\": {\n      \"handling_ambiguity\": \"If the query is vague, ask for clarification. Example: 'Could you please specify if you're asking about the benefits enrollment process or the HR paperwork?'\",\n      \"handling_out_of_scope_queries\": \"Politely decline and redirect the user. Example: 'I can only assist with questions directly related to the new hire onboarding materials. For that type of question, you may need to reach out to the relevant department.'\",\n      \"context_retention\": \"Maintain context throughout a conversation to provide relevant follow-up information.\"\n    },\n    \"output_formatting\": {\n      \"default_format\": \"Markdown, use bolding and bullet points to improve readability.\",\n      \"special_cases\": [\"For complex topics like benefits, use a step-by-step format.\"]\n    },\n    \"safety_boundaries\": {\n      \"restricted_topics\": [\"Any form of illegal activity, harmful content, or discriminatory language.\", \"Personal or confidential information not found in the documents.\", \"Financial or legal advice outside the scope of the onboarding paperwork.\"],\n      \"escalation_rules\": [\"If a query falls into a restricted topic, politely refuse the request and explain the limitation.\"]\n    }\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4e346463-677a-4e54-b76e-7a8e7aa1fdc1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        208
+      ],
+      "id": "a94dbdb9-11a5-41a1-95db-23895551da49",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.text }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "f5b40fad-b14d-4e81-a906-76bb9620b553",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "33cbe77e-9910-484f-8b04-0a6f3cdf33b1",
+      "name": "Send a text message",
+      "webhookId": "8efe6016-f0c7-41e7-a6ee-ac549be85223",
+      "credentials": {
+        "telegramApi": {
+          "id": "qBPCu6f8xDrZES9e",
+          "name": "Telegram_HR_Onboarding_Assistant"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "hr-onboarding-reference",
+          "mode": "list",
+          "cachedResultName": "hr-onboarding-reference"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        208
+      ],
+      "id": "da1592f7-a188-47bf-92fe-4527c8aecd3c",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "5GrO2LpdbiEW9mPe",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        384
+      ],
+      "id": "014ed020-c305-4fc7-a078-9e533dc417fb",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "L7WdXBD6t9U3DeML",
+          "name": "OpenAi Personal"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0b6648a8-0932-4600-ab18-1cef996e5347",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38caafec2ebbecb4824f6a6a28170dbb0508d95374fbbbf908fa415e7be78bc2"
+  },
+  "id": "sO7FE3E4PL2Gwax9",
+  "tags": [
+    {
+      "createdAt": "2025-08-16T12:43:11.379Z",
+      "updatedAt": "2025-08-16T12:43:11.379Z",
+      "id": "wdO3ihhn9c51hVwM",
+      "name": "IC-Project"
+    }
+  ]
+}

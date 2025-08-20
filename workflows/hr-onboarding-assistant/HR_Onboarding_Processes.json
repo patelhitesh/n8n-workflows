@@ -1,0 +1,258 @@
+{
+  "name": "HR_Onboarding_Processes",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z",
+          "mode": "list",
+          "cachedResultName": "RAG_Test_Documents",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -224
+      ],
+      "id": "a7ce13f1-c757-4067-8300-819d954beed7",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "hr-onboarding-reference",
+          "mode": "list",
+          "cachedResultName": "hr-onboarding-reference"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        -224
+      ],
+      "id": "63244bbd-18df-478a-9522-4781c801e4e6",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "5GrO2LpdbiEW9mPe",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "8861cb7a-6230-4465-b1fd-e8589b4cbeeb",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "e4c11130-f0b8-403a-bb6d-30837a52d9bc",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        640,
+        160
+      ],
+      "id": "c8fcc39a-261c-4fd3-ba64-d067303965d5",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": ".pdf",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "12CqX7TOnJlmP0V0RspAaEKBP8pz5vIav",
+            "mode": "list",
+            "cachedResultName": "HR_Onboarding",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/12CqX7TOnJlmP0V0RspAaEKBP8pz5vIav"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        96,
+        -224
+      ],
+      "id": "0a23d104-d4a7-45e5-81b7-50a6d4a8e82f",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        304,
+        -224
+      ],
+      "id": "3a240021-20cc-4b45-8e45-98d8e820570a",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8a65b375-4317-4eaa-a241-28f421836ffb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38caafec2ebbecb4824f6a6a28170dbb0508d95374fbbbf908fa415e7be78bc2"
+  },
+  "id": "bCXzNptAxwjhNWEa",
+  "tags": [
+    {
+      "createdAt": "2025-08-16T12:43:11.379Z",
+      "updatedAt": "2025-08-16T12:43:11.379Z",
+      "id": "wdO3ihhn9c51hVwM",
+      "name": "IC-Project"
+    }
+  ]
+}
