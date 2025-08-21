@@ -1,0 +1,258 @@
+{
+  "name": "Travel_Planner_VectorStore",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z",
+          "mode": "list",
+          "cachedResultName": "RAG_Test_Documents",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1dnTC-1lrAFcE2v_huFrqajw5LwwT1M9Z"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -224
+      ],
+      "id": "52688bda-bd92-4b75-9a9d-55cb55f04a98",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "travel-planner",
+          "mode": "list",
+          "cachedResultName": "travel-planner"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        -224
+      ],
+      "id": "433c345c-ecbc-4298-be4d-dc007b799e0a",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "5GrO2LpdbiEW9mPe",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c273587d-4a2b-4cbb-b0ac-c83765954d1b",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "xBDA2rlDIuBiyhFw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "20dcf468-dbc9-4893-b1db-63ef9775f3e0",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        640,
+        160
+      ],
+      "id": "e966a0b1-58d3-44c6-8556-b3f9805884ef",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": ".pdf",
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1y9vUqpXGfFvnfSmo5hjROWTVqfU4zsub",
+            "mode": "list",
+            "cachedResultName": "KarnatakaTourism",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1y9vUqpXGfFvnfSmo5hjROWTVqfU4zsub"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        96,
+        -224
+      ],
+      "id": "bb55e81b-618e-4b1e-8255-5426049b53e2",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        304,
+        -224
+      ],
+      "id": "59f35d35-80e1-420b-931d-cd5395b06ee4",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Y4wggGoE0hWJpeCi",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3691e18e-e4be-4f29-84d7-1f0a0f5e04df",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "38caafec2ebbecb4824f6a6a28170dbb0508d95374fbbbf908fa415e7be78bc2"
+  },
+  "id": "FTOa815ubbGALNJn",
+  "tags": [
+    {
+      "createdAt": "2025-08-16T12:43:11.379Z",
+      "updatedAt": "2025-08-16T12:43:11.379Z",
+      "id": "wdO3ihhn9c51hVwM",
+      "name": "IC-Project"
+    }
+  ]
+}
